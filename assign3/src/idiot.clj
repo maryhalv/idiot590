@@ -158,11 +158,19 @@ Arguments:
   (let [bytes (vec (unzip (address-conv dir db address)))]
     (loop [entries []
            raw bytes]
+
       (if (not (some #(= 0 %) raw))
         (conj entries raw)
         (let [[item rest] (split-at-byte 0 raw)]
-          (recur (conj entries item)
-                 rest))))))
+
+          (if (< (count entries) 2)
+            (recur (conj entries item)
+                   rest)
+            (let [addr-header-count (count item)
+                  address (take 20 item)
+                  header (take-last (- addr-header-count 20) item)]
+              (recur (conj entries address header) rest))
+            ))))))
 
 (defn format-entries [header+entries-byte]
   (let [entries-byte (vec (rest header+entries-byte))
