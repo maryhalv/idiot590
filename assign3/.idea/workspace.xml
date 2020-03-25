@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="81e5849a-edf0-4b32-b9d5-c6e5f4543090" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DepsLocalSettings">
+    <option name="repoId" value="" />
+    <option name="repoUrl" value="" />
+  </component>
+  <component name="DepsProjectDetails">
+    <option name="cachedModuleDetails">
+      <map>
+        <entry key="$PROJECT_DIR$/deps.edn">
+          <value>
+            <ModuleDetails>
+              <option name="details" value="{:paths [&quot;src&quot; &quot;classes&quot; &quot;spec&quot;], :deps {org.clojure/clojure {:mvn/version &quot;1.10.1&quot;}}, :aliases {:deps {:extra-deps {org.clojure/tools.deps.alpha {:mvn/version &quot;0.8.599&quot;}}}, :test {:extra-deps {speclj/speclj {:git/url &quot;https://github.com/kyptin/speclj&quot;, :sha &quot;a843b64cc5a015b8484627eff6e84bbac2712692&quot;}}, :main-opts [&quot;-m&quot; &quot;speclj.cli&quot;]}}, :mvn/repos {&quot;central&quot; {:url &quot;https://repo1.maven.org/maven2/&quot;}, &quot;clojars&quot; {:url &quot;https://repo.clojars.org/&quot;}}, :system-aliases #{:test :deps}, :deps-tree {org.clojure/clojure {:mvn/version &quot;1.10.1&quot;, :deps/manifest :mvn, :paths [&quot;/Users/maryhalv/.m2/repository/org/clojure/clojure/1.10.1/clojure-1.10.1.jar&quot;], :children (org.clojure/spec.alpha org.clojure/core.specs.alpha)}, speclj/speclj {:git/url &quot;https://github.com/kyptin/speclj&quot;, :sha &quot;a843b64cc5a015b8484627eff6e84bbac2712692&quot;, :deps/manifest :deps, :deps/root &quot;/Users/maryhalv/.gitlibs/libs/speclj/speclj/a843b64cc5a015b8484627eff6e84bbac2712692&quot;, :paths [&quot;/Users/maryhalv/.gitlibs/libs/speclj/speclj/a843b64cc5a015b8484627eff6e84bbac2712692/src&quot;], :children (fresh/fresh mmargs/mmargs trptcolin/versioneer)}, org.clojure/spec.alpha {:mvn/version &quot;0.2.176&quot;, :deps/manifest :mvn, :paths [&quot;/Users/maryhalv/.m2/repository/org/clojure/spec.alpha/0.2.176/spec.alpha-0.2.176.jar&quot;], :dependents [org.clojure/clojure], :children ()}, org.clojure/core.specs.alpha {:mvn/version &quot;0.2.44&quot;, :deps/manifest :mvn, :paths [&quot;/Users/maryhalv/.m2/repository/org/clojure/core.specs.alpha/0.2.44/core.specs.alpha-0.2.44.jar&quot;], :dependents [org.clojure/clojure], :children ()}, fresh/fresh {:mvn/version &quot;1.1.2&quot;, :deps/manifest :mvn, :paths [&quot;/Users/maryhalv/.m2/repository/fresh/fresh/1.1.2/fresh-1.1.2.jar&quot;], :dependents [speclj/speclj], :children ()}, mmargs/mmargs {:mvn/version &quot;1.2.0&quot;, :deps/manifest :mvn, :paths [&quot;/Users/maryhalv/.m2/repository/mmargs/mmargs/1.2.0/mmargs-1.2.0.jar&quot;], :dependents [speclj/speclj], :children ()}, trptcolin/versioneer {:mvn/version &quot;0.1.1&quot;, :deps/manifest :mvn, :paths [&quot;/Users/maryhalv/.m2/repository/trptcolin/versioneer/0.1.1/versioneer-0.1.1.jar&quot;], :dependents [speclj/speclj], :children ()}}}" />
+              <option name="hash" value="0f3eee24d59420b3a1126a8b7f895303" />
+            </ModuleDetails>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Clojure Namespace" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectId" id="1ZaWUUv8p3OtAkCkbyGAg7VAutT" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="cursive.last.file.extension./Users/maryhalv/assign3/src" value="clj" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="DepsSettings" />
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="ClojureREPL" factoryName="Local" activateToolWindowBeforeRun="false">
+      <setting name="replType" value="NREPL" />
+      <setting name="execution" value="LEININGEN" />
+      <module name="" />
+      <setting name="jvmArgs" value="" />
+      <setting name="parameters" value="" />
+      <setting name="workingDir" value="" />
+      <setting name="profiles" value="" />
+      <setting name="aliases" value="" />
+      <setting name="fixLineNumbers" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="ClojureREPL" factoryName="Remote" activateToolWindowBeforeRun="false">
+      <setting name="host" value="" />
+      <setting name="port" value="0" />
+      <setting name="replType" value="SOCKET" />
+      <setting name="configType" value="SPECIFY" />
+      <setting name="fixLineNumbers" value="false" />
+      <module name="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="81e5849a-edf0-4b32-b9d5-c6e5f4543090" name="Default Changelist" comment="" />
+      <created>1585077700886</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1585077700886</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="319" y="219" key="com.intellij.ide.util.TipDialog" timestamp="1585078819592">
+      <screen x="0" y="0" width="1280" height="800" />
+    </state>
+    <state x="319" y="219" key="com.intellij.ide.util.TipDialog/0.0.1280.800@0.0.1280.800" timestamp="1585078819592" />
+  </component>
+</project>
