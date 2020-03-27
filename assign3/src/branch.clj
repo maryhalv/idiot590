@@ -19,32 +19,54 @@ Arguments:
     (and (= "-d" (first arg)) (= '() (rest arg))) (println "Error: you must specify a branch name.")
     (not (.exists (io/file (str dir File/separator db)))) (println "Error: could not find database. (Did you run `idiot init`?)")
     (and (not= nil arg) (or (not= "-d" (first arg)) (not= 1 (count (rest arg))))) (println "Error: invalid arguments.")
-    (and (= (first arg) "-d") (.exists (io/file (str dir File/separator db File/separator "refs" File/separator "heads" File/separator (second arg))))) (let [head-contents (slurp (str dir File/separator db File/separator "HEAD"))
-          ref (get (str/split head-contents #"/heads") 1)
-          head-branch (apply str (subs ref 1 (- (count ref) 1)))]
-        (if (= (str head-branch) (str (second arg)))
-          (println (format "Error: cannot delete checked-out branch '%s'." (second arg)))
-          (do
-            (.delete (io/file (str dir File/separator db File/separator "refs" File/separator "heads" File/separator (second arg))))
-            (println (format "Deleted branch %s." (second arg))))
-          )
-          )
-    (and (= (first arg) "-d") (not (.exists (io/file (str dir File/separator db File/separator "refs" File/separator "heads" File/separator (second arg))))))
-    (println "Error: branch 'unknown-branch' not found.")
-    (nil? (first arg))
-    (let [head-contents (slurp (str dir File/separator db File/separator "HEAD"))
-            ref (get (str/split head-contents #"/heads") 1)
-            head-branch (subs ref 1)]
-        (let [refs (sort (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads"))))]
-          (doall (map (fn [ref]
-                        (cond
-                          ;;while it does not currently recognize head branches
-                          ;;removed null pointer exception
-                          ;;I think this is due to null characters in the
-                          ;;autograder's test cases?
-                          (= ref head-branch) (println (format "* %s" ref))
-                          :else (println (format "  %s" ref))
-                          )) refs)))
-        )
-      )
-    )
+    :else (let [[switch branch] arg
+                branch-path (str dir File/separator db File/separator "refs" File/separator "heads" File/separator branch)]
+            (cond
+              (and (= "-d" switch) (not (.exists (io/file branch-path)))) (println (format "Error: branch '%s' not found." branch))
+              (.startsWith (slurp (str dir File/separator db File/separator "HEAD")) "ref:")
+              (let [head-contents (slurp (str dir File/separator db File/separator "HEAD"))
+                    ;head-branch (apply str (butlast (apply str (subs head-contents 16))))
+                    head-branch (first (str/split (second (str/split head-contents #"heads/")) #"\n"))
+                    ]
+                (cond
+                  (and (= switch "-d") (= branch head-branch)) (println (format "Error: cannot delete checked-out branch '%s'." branch))
+                  (= switch "-d") (do
+                                    (.delete (io/file branch-path))
+                                    (println (format "Deleted branch %s." branch)))
+                  (.startsWith head-contents "ref:") (let [refs (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))
+                                                           head-contents (slurp (str dir File/separator db File/separator "HEAD"))
+                                                           head-branch (first (str/split (second (str/split head-contents #"heads/")) #"\n"))]
+                                                       #_(loop [adj-refs []
+                                                                remaining-refs refs]
+                                                           (if (empty? remaining-refs)
+                                                             (print (apply str adj-refs))
+                                                             (let [[item & rest] remaining-refs]
+                                                               (if (= item head-branch) (recur (conj adj-refs (str "* " item "\n")) rest)
+                                                                                        (recur (conj adj-refs (str "  " item "\n")) rest)))))
+
+                                                       (print (apply str (doall (map (fn [ref]
+                                                                                       (cond (= ref head-branch)
+                                                                                             (str "* " ref "\n") :else (str "  " ref "\n"))) refs)))))
+                  :else (println "should not be here1")))
+              :else (let [head-contents (slurp (str dir File/separator db File/separator "HEAD"))
+                          ;head-branch (apply str (butlast (apply str (subs head-contents 16))))
+                          ;head-branch (first (str/split (second (str/split head-contents #"heads/")) #"\n"))
+                          ]
+                      (cond
+                        (= switch "-d") (do
+                                          (.delete (io/file branch-path))
+                                          (println (format "Deleted branch %s." branch)))
+                        :else (let [refs (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))
+                                    head-contents (slurp (str dir File/separator db File/separator "HEAD"))
+                                    ; head-branch (first (str/split (second (str/split head-contents #"heads/")) #"\n"))
+                                    ]
+                                #_(loop [adj-refs []
+                                         remaining-refs refs]
+                                    (if (empty? remaining-refs)
+                                      (print (apply str adj-refs))
+                                      (let [[item & rest] remaining-refs]
+                                        (if (= item head-branch) (recur (conj adj-refs (str "* " item "\n")) rest)
+                                                                 (recur (conj adj-refs (str "  " item "\n")) rest)))))
+
+                                (print (apply str (map (fn [ref] (str "  " ref "\n")) refs))))
+                        :else (println "should not be here2")))))))
