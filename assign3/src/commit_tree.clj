@@ -111,11 +111,9 @@ Arguments:
         p-sufficient (not= "-p" (last parent-raw))]
 
     (cond
-      (or (= tree-addr "-h") (= tree-addr "--help")) (do
-                                                       (if (= com "commit-tree")
-                                                         (commit-tree-er)
-                                                         (commit/commit-error)
-                                                         )
+      (or (= tree-addr "-h") (= tree-addr "--help")) (if (= com "commit-tree")
+                                                       (commit-tree-er)
+                                                       (commit/commit-error)
                                                        )
       (not (.exists (io/file (str dir File/separator db)))) (println "Error: could not find database. (Did you run `idiot init`?)")
       (= nil tree-addr) (println "Error: you must specify a tree address.")
@@ -130,9 +128,7 @@ Arguments:
                   commit-addr (hashing/to-hex-string (hashing/sha-bytes (.getBytes commit-object)))
                   commit-path (hashing/address-conv dir db commit-addr)]
               (if (= com "commit-tree")
-                (do
-                  (println commit-addr)
-                  )
+                (println commit-addr)
                 (do
                   (println "Commit created.\n")
                   (commit/updateHead {:addr commit-addr :dir dir :db db})

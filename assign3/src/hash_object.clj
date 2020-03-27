@@ -1,6 +1,5 @@
 (ns hash-object
   (:require [clojure.java.io :as io])
-  (:require [clojure.string :as str])
   (:require hashing)
   (:import (java.io File))
   )

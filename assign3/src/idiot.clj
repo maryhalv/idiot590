@@ -1,6 +1,5 @@
 (ns idiot
   (:require [clojure.java.io :as io])
-  (:require [clojure.string :as str])
   (:require init)
   (:require cat-file)
   (:require write-wtree)
@@ -53,6 +52,7 @@ Usage: idiot help <command>\n\nArguments:\n   <command>   the command to print h
       (= arg-s "commit-tree") (commit-tree/commit-tree-er)
       (= arg-s "commit") (commit/commit-error)
       (= arg-s "rev-parse") (rev_parse/rev-parse-er)
+      (= arg-s "switch") (switch/switch-er)
       (or (= arg-s "-h") (= arg-s "--help")) (help-error)
       :else (println "Error: invalid command"))))
 
