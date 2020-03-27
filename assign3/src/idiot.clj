@@ -9,6 +9,7 @@
   (:require hash-object)
   (:require switch)
   (:require rev_parse)
+  (:require commit)
   )
 
 (defn top-level-error []
@@ -21,18 +22,21 @@ Top-level arguments:
    -d <dir>   store the database in <dir> (default: .idiot)
 
 Commands:
+   branch [-d <branch>]
+   cat-file {-p|-t} <address>
+   commit <tree> -m \"message\" [(-p parent)...]
+   commit-tree <tree> -m \"message\" [(-p parent)...]
+   hash-object [-w] <file>
    help
    init
-   hash-object [-w] <file>
-   cat-file {-p|-t} <address>
-   write-wtree
-   commit-tree <tree> -m \"<message>\" [(-p <parent>)...]"))
+   rev-parse <ref>
+   switch [-c] <branch>
+   write-wtree"))
 
 (defn help-error []
   (println "idiot help: print help for a command
 
-Usage: idiot help <command>\n\nArguments:\n   <command>   the command to print help for\n\nCommands:\n   help\n   init\n   hash-object [-w] <file>
-   cat-file {-p|-t} <address>\n   write-wtree\n   commit-tree <tree> -m \"<message>\" [(-p <parent>)...]"))
+Usage: idiot help <command>\n\nArguments:\n   <command>   the command to print help for\n\nCommands:\n   branch [-d <branch>]\n   cat-file {-p|-t} <address>\n   commit <tree> -m \"message\" [(-p parent)...]\n   commit-tree <tree> -m \"message\" [(-p parent)...]\n   hash-object [-w] <file>\n   help\n   init\n   rev-parse <ref>\n   switch [-c] <branch>\n   write-wtree"))
 
 (defn read-arg-help [{:keys [arg]}]
   ;;changing arg type from sequence to string
@@ -46,6 +50,8 @@ Usage: idiot help <command>\n\nArguments:\n   <command>   the command to print h
       (= arg-s "cat-file") (cat-file/cat-error)
       (= arg-s "write-wtree") (write-wtree/wtree-error)
       (= arg-s "commit-tree") (commit-tree/commit-tree-er)
+      (= arg-s "commit") (commit/commit-error)
+      (= arg-s "rev-parse") (rev_parse/rev-parse-er)
       (or (= arg-s "-h") (= arg-s "--help")) (help-error)
       :else (println "Error: invalid command"))))
 
@@ -56,15 +62,15 @@ Usage: idiot help <command>\n\nArguments:\n   <command>   the command to print h
     (= com "hash-object") (hash-object/read-arg-ho {:arg arg :dir dir :db db})
     (= com "cat-file") (cat-file/read-arg-cf {:arg arg :dir dir :db db})
     (= com "write-wtree") (write-wtree/write-wtree {:arg arg :dir dir :db db})
-    (= com "commit-tree") (commit-tree/commit-tree {:arg arg :dir dir :db db})
+    (= com "commit-tree") (commit-tree/commit-tree {:arg arg :dir dir :db db :com com})
+    (= com "commit") (commit-tree/commit-tree {:arg arg :dir dir :db db :com com})
     (= com "rev-parse") (rev_parse/rev-parse {:arg arg :dir dir :db db})
     (= com "switch") (switch/switch {:arg arg :dir dir :db db})
     (or (= com nil) (= com "-h") (= com "--help")) (top-level-error)
     :else (println "Error: invalid command")))
 
-(defn -main [& args]                                        ;;com = command
+(defn -main [& args]
   ;;separating command from arg
-
   (let [[flag1 & rest] args]
     (cond
       (= flag1 "-r") (let [[dir & f2dca] rest]
@@ -94,4 +100,5 @@ Usage: idiot help <command>\n\nArguments:\n   <command>   the command to print h
                                    :else (let [[com & arg] f2rca]
                                            (run-com {:com com :dir "." :db db :arg arg}))))))
       :else (let [[com & arg] args]
-              (run-com {:com com :arg arg :dir "." :db ".idiot"})))))
+              (run-com {:com com :arg arg :dir "." :db ".idiot"}))))
+  )

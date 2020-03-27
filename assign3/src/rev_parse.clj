@@ -1,4 +1,7 @@
-(ns rev_parse)
+(ns rev_parse
+  (:require [clojure.java.io :as io])
+  (:import (java.io File))
+  )
 
 
 (defn rev-parse-er []

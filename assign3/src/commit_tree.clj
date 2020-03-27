@@ -2,6 +2,7 @@
   (:require [clojure.java.io :as io])
   (:require [clojure.string :as str])
   (:require hashing)
+  (:require commit)
   (:import (java.io File))
   )
 
@@ -94,7 +95,7 @@ Arguments:
                     (count commit-str-p)
                     commit-str-p))))
 
-(defn commit-tree [{:keys [arg dir db]}]
+(defn commit-tree [{:keys [arg dir db com]}]
   (let [[tree-addr m-switch message & parent-raw] arg
         parent (vec (partition 2 parent-raw))
         vec-not-obj (reduce
@@ -110,7 +111,12 @@ Arguments:
         p-sufficient (not= "-p" (last parent-raw))]
 
     (cond
-      (or (= tree-addr "-h") (= tree-addr "--help")) (commit-tree-er)
+      (or (= tree-addr "-h") (= tree-addr "--help")) (do
+                                                       (if (= com "commit-tree")
+                                                         (commit-tree-er)
+                                                         (commit/commit-error)
+                                                         )
+                                                       )
       (not (.exists (io/file (str dir File/separator db)))) (println "Error: could not find database. (Did you run `idiot init`?)")
       (= nil tree-addr) (println "Error: you must specify a tree address.")
       (not (.exists (io/file (hashing/address-conv dir db tree-addr)))) (println "Error: no tree object exists at that address.")
@@ -123,7 +129,15 @@ Arguments:
       :else (let [commit-object (commit-object tree-addr message parent)
                   commit-addr (hashing/to-hex-string (hashing/sha-bytes (.getBytes commit-object)))
                   commit-path (hashing/address-conv dir db commit-addr)]
-              (println commit-addr)
+              (if (= com "commit-tree")
+                (do
+                  (println commit-addr)
+                  )
+                (do
+                  (println "Commit created.\n")
+                  (commit/updateHead {:addr commit-addr :dir dir :db db})
+                  )
+                )
               (io/make-parents commit-path)
               (io/copy (hashing/zip-str commit-object) (io/file commit-path))))))
 

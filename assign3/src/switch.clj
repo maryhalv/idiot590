@@ -1,4 +1,7 @@
-(ns switch)
+(ns switch
+  (:require [clojure.java.io :as io])
+  (:import (java.io File))
+  )
 
 
 (defn switch-er []
