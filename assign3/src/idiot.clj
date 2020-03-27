@@ -7,6 +7,8 @@
   (:require commit-tree)
   (:require hashing)
   (:require hash-object)
+  (:require switch)
+  (:require rev_parse)
   )
 
 (defn top-level-error []
@@ -55,6 +57,8 @@ Usage: idiot help <command>\n\nArguments:\n   <command>   the command to print h
     (= com "cat-file") (cat-file/read-arg-cf {:arg arg :dir dir :db db})
     (= com "write-wtree") (write-wtree/write-wtree {:arg arg :dir dir :db db})
     (= com "commit-tree") (commit-tree/commit-tree {:arg arg :dir dir :db db})
+    (= com "rev-parse") (rev_parse/rev-parse {:arg arg :dir dir :db db})
+    (= com "switch") (switch/switch {:arg arg :dir dir :db db})
     (or (= com nil) (= com "-h") (= com "--help")) (top-level-error)
     :else (println "Error: invalid command")))
 
