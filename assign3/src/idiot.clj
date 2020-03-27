@@ -10,6 +10,7 @@
   (:require switch)
   (:require rev_parse)
   (:require commit)
+  (:require branch)
   )
 
 (defn top-level-error []
@@ -66,6 +67,7 @@ Usage: idiot help <command>\n\nArguments:\n   <command>   the command to print h
     (= com "commit") (commit-tree/commit-tree {:arg arg :dir dir :db db :com com})
     (= com "rev-parse") (rev_parse/rev-parse {:arg arg :dir dir :db db})
     (= com "switch") (switch/switch {:arg arg :dir dir :db db})
+    (= com "branch") (branch/branch {:arg arg :dir dir :db db})
     (or (= com nil) (= com "-h") (= com "--help")) (top-level-error)
     :else (println "Error: invalid command")))
 
