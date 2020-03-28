@@ -1,17 +1,12 @@
 (ns switch
   (:require [clojure.java.io :as io])
-  (:import (java.io File))
-  )
-
+  (:import (java.io File)))
 
 (defn switch-er []
-  (println "idiot switch: change what HEAD points to
-
-Usage: idiot switch [-c] <branch>
-
-Arguments:
-   -c   create the branch before switching to it"))
-
+  (println "idiot switch: change what HEAD points to\n")
+  (println "Usage: idiot switch [-c] <branch>\n")
+  (println "Arguments:")
+  (println "   -c   create the branch before switching to it"))
 
 (defn switch [{:keys [arg dir db]}]
   (cond

@@ -3,38 +3,35 @@
   (:require [clojure.string :as str])
   (:require hashing)
   (:require commit)
-  (:import (java.io File))
-  )
+  (:import (java.io File)))
 
 (declare commit-tree-er)
 
 (defn commit-tree-er []
-  (println "idiot commit-tree: write a commit object based on the given tree
-
-Usage: idiot commit-tree <tree> -m \"message\" [(-p parent)...]
-
-Arguments:
-   -h               print this message
-   <tree>           the address of the tree object to commit
-   -m \"<message>\"   the commit message
-   -p <parent>      the address of a parent commit"))
+  (println "idiot commit-tree: write a commit object based on the given tree\n")
+  (println "Usage: idiot commit-tree <tree> -m \"message\" [(-p parent)...]\n")
+  (println "Arguments:")
+  (println "   -h               print this message")
+  (println "   <tree>           the address of the tree object to commit")
+  (println "   -m \"<message>\"   the commit message")
+  (println "   -p <parent>      the address of a parent commit"))
 
 (defn format-entries [header+entries-byte]
   (let [entries-byte (vec (rest header+entries-byte))
         entries-sep (vec (partition 2 entries-byte))
         headers (as-> entries-sep $
-                      (map first $)
-                      (map vec $)
-                      (map hashing/bytes->str $))
+                  (map first $)
+                  (map vec $)
+                  (map hashing/bytes->str $))
         modes (as-> headers $
-                    (map first (map #(str/split % #" ") $))
-                    (map #(str/replace % #"40000" "040000 tree") $)
-                    (map #(str/replace % #"100644" "100644 blob") $))
+                (map first (map #(str/split % #" ") $))
+                (map #(str/replace % #"40000" "040000 tree") $)
+                (map #(str/replace % #"100644" "100644 blob") $))
         names (map second (map #(str/split % #" ") headers))
         addresses (as-> entries-sep $
-                        (map second $)
-                        (map vec $)
-                        (map hashing/to-hex-string $))
+                    (map second $)
+                    (map vec $)
+                    (map hashing/to-hex-string $))
         entry-format "%s %s\t%s\n"
         entries-tot (map (fn [modes addresses names]
                            (format entry-format modes addresses names)) modes addresses names)]
@@ -55,8 +52,7 @@ Arguments:
             (let [addr-header-count (count item)
                   address (take 20 item)
                   header (take-last (- addr-header-count 20) item)]
-              (recur (conj entries address header) rest))
-            ))))))
+              (recur (conj entries address header) rest))))))))
 
 (defn format-parent [arg]
   (str "parent " arg "\n"))
@@ -99,22 +95,21 @@ Arguments:
   (let [[tree-addr m-switch message & parent-raw] arg
         parent (vec (partition 2 parent-raw))
         vec-not-obj (reduce
-                      (fn [bads parent]
-                        (if (not (.exists (io/file (hashing/address-conv dir db (second parent))))) (conj bads (second parent)) (identity bads))) [] parent)
+                     (fn [bads parent]
+                       (if (not (.exists (io/file (hashing/address-conv dir db (second parent))))) (conj bads (second parent)) (identity bads))) [] parent)
         vec-yes-obj (reduce
-                      (fn [goods parent]
-                        (if (.exists (io/file (hashing/address-conv dir db (second parent)))) (conj goods (second parent)) (identity goods))) [] parent)
+                     (fn [goods parent]
+                       (if (.exists (io/file (hashing/address-conv dir db (second parent)))) (conj goods (second parent)) (identity goods))) [] parent)
         vec-non-commits (reduce
-                          (fn [non-coms objs]
-                            (if (not= "commit" (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db objs))))) #" ")))
-                              (conj non-coms objs) (identity non-coms))) [] vec-yes-obj)
+                         (fn [non-coms objs]
+                           (if (not= "commit" (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db objs))))) #" ")))
+                             (conj non-coms objs) (identity non-coms))) [] vec-yes-obj)
         p-sufficient (not= "-p" (last parent-raw))]
 
     (cond
       (or (= tree-addr "-h") (= tree-addr "--help")) (if (= com "commit-tree")
                                                        (commit-tree-er)
-                                                       (commit/commit-error)
-                                                       )
+                                                       (commit/commit-error))
       (not (.exists (io/file (str dir File/separator db)))) (println "Error: could not find database. (Did you run `idiot init`?)")
       (= nil tree-addr) (println "Error: you must specify a tree address.")
       (not (.exists (io/file (hashing/address-conv dir db tree-addr)))) (println "Error: no tree object exists at that address.")
@@ -131,9 +126,7 @@ Arguments:
                 (println commit-addr)
                 (do
                   (println "Commit created.\n")
-                  (commit/updateHead {:addr commit-addr :dir dir :db db})
-                  )
-                )
+                  (commit/updateHead {:addr commit-addr :dir dir :db db})))
               (io/make-parents commit-path)
               (io/copy (hashing/zip-str commit-object) (io/file commit-path))))))
 

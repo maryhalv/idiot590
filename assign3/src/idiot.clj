@@ -9,34 +9,42 @@
   (:require switch)
   (:require rev_parse)
   (:require commit)
-  (:require branch)
-  )
+  (:require branch))
 
 (defn top-level-error []
-  (println "idiot: the other stupid content tracker
-
-Usage: idiot [<top-args>] <command> [<args>]
-
-Top-level arguments:
-   -r <dir>   run from the given directory instead of the current one
-   -d <dir>   store the database in <dir> (default: .idiot)
-
-Commands:
-   branch [-d <branch>]
-   cat-file {-p|-t} <address>
-   commit <tree> -m \"message\" [(-p parent)...]
-   commit-tree <tree> -m \"message\" [(-p parent)...]
-   hash-object [-w] <file>
-   help
-   init
-   rev-parse <ref>
-   switch [-c] <branch>
-   write-wtree"))
+  (println "idiot: the other stupid content tracker\n")
+  (println "Usage: idiot [<top-args>] <command> [<args>]\n")
+  (println "Top-level arguments:")
+  (println "   -r <dir>   run from the given directory instead of the current one")
+  (println "   -d <dir>   store the database in <dir> (default: .idiot)\n")
+  (println "Commands:")
+  (println "   branch [-d <branch>]")
+  (println "   cat-file {-p|-t} <address>")
+  (println "   commit <tree> -m \"message\" [(-p parent)...]")
+  (println "   commit-tree <tree> -m \"message\" [(-p parent)...]")
+  (println "   hash-object [-w] <file>")
+  (println "   help")
+  (println "   init")
+  (println "   rev-parse <ref>")
+  (println "   switch [-c] <branch>")
+  (println "   write-wtree"))
 
 (defn help-error []
-  (println "idiot help: print help for a command
-
-Usage: idiot help <command>\n\nArguments:\n   <command>   the command to print help for\n\nCommands:\n   branch [-d <branch>]\n   cat-file {-p|-t} <address>\n   commit <tree> -m \"message\" [(-p parent)...]\n   commit-tree <tree> -m \"message\" [(-p parent)...]\n   hash-object [-w] <file>\n   help\n   init\n   rev-parse <ref>\n   switch [-c] <branch>\n   write-wtree"))
+  (println "idiot help: print help for a command\n")
+  (println "Usage: idiot help <command>\n")
+  (println "Arguments:")
+  (println "   <command>   the command to print help for\n")
+  (println "Commands:")
+  (println "   branch [-d <branch>]")
+  (println "   cat-file {-p|-t} <address>")
+  (println "   commit <tree> -m \"message\" [(-p parent)...]")
+  (println "   commit-tree <tree> -m \"message\" [(-p parent)...]")
+  (println "   hash-object [-w] <file>")
+  (println "   help")
+  (println "   init")
+  (println "   rev-parse <ref>")
+  (println "   switch [-c] <branch>")
+  (println "   write-wtree"))
 
 (defn read-arg-help [{:keys [arg]}]
   ;;changing arg type from sequence to string
@@ -53,6 +61,7 @@ Usage: idiot help <command>\n\nArguments:\n   <command>   the command to print h
       (= arg-s "commit") (commit/commit-error)
       (= arg-s "rev-parse") (rev_parse/rev-parse-er)
       (= arg-s "switch") (switch/switch-er)
+      (= arg-s "branch") (branch/branch-er)
       (or (= arg-s "-h") (= arg-s "--help")) (help-error)
       :else (println "Error: invalid command"))))
 
@@ -102,5 +111,4 @@ Usage: idiot help <command>\n\nArguments:\n   <command>   the command to print h
                                    :else (let [[com & arg] f2rca]
                                            (run-com {:com com :dir "." :db db :arg arg}))))))
       :else (let [[com & arg] args]
-              (run-com {:com com :arg arg :dir "." :db ".idiot"}))))
-  )
+              (run-com {:com com :arg arg :dir "." :db ".idiot"})))))

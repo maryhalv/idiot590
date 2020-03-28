@@ -1,17 +1,15 @@
 (ns write-wtree
   (:require [clojure.java.io :as io])
   (:require hashing)
-  (:import (java.io File))
-  )
+  (:import (java.io File)))
+
 (declare wtree-error, store-entry, ->Entry)
 
 (defn wtree-error []
-  (println "idiot write-wtree: write the working tree to the database
-
-Usage: idiot write-wtree
-
-Arguments:
-   -h       print this message"))
+  (println "idiot write-wtree: write the working tree to the database\n")
+  (println "Usage: idiot write-wtree\n")
+  (println "Arguments:")
+  (println "   -h       print this message"))
 
 (defn make-addr-blob
   "Makes addresses for blobs. Copied code from hash object."
@@ -55,23 +53,24 @@ Arguments:
 
 (defn store-blob-entry [{:keys [contents dir db]}]
   (let [address (hashing/address-conv dir db (hashing/to-hex-string (make-addr-blob contents)))]
-    (if (.exists (io/file address)) (make-addr-blob contents)
-                                    (do
-                                      (io/make-parents address)
-                                      (io/copy (hashing/zip-str (hashing/header+blob "blob" contents)) (io/file address))
-                                      (make-addr-blob contents)))))
+    (if (.exists (io/file address))
+      (make-addr-blob contents)
+      (do
+        (io/make-parents address)
+        (io/copy (hashing/zip-str (hashing/header+blob "blob" contents)) (io/file address))
+        (make-addr-blob contents)))))
 
 (defn store-tree-entry [{:keys [dir db contents]}]
   (if (and (not= contents nil) (not= contents []) (not= contents [nil]))
     (let [entries+addresses (mapv (juxt identity store-entry) (vec (remove nil? contents)))
           entry->debug-str (fn [[{:keys [name type contents]} addr]] {:name name :type type :addr addr :contents contents})
-          entries-byte (as-> entries+addresses $ ;
-                             (map entry->debug-str $) ;This returns a map of {:name name :type type :addr addr :contents contents} for each entry
-                             (filter #(not= [nil] (:contents %)) $) ; ignore this, trying to figure out how to skip empty dirs
-                             (map make-header $) ;Using previous map, I make a string from the "number" (eg 100644) name null char.
-                             ;Then I get the bytes and concat with the address (which is already in bytes). Then I turn it to hex-string because you can't make it a reg string
-                             (apply str $) ;Here I apply string to join entries together. Idk why it works but it does.
-                             (hashing/from-hex-string $)) ;Back to bytes fo sho fo sho
+          entries-byte (as-> entries+addresses $
+                         (map entry->debug-str $) ;This returns a map of {:name name :type type :addr addr :contents contents} for each entry
+                         (filter #(not= [nil] (:contents %)) $) ; ignore this, trying to figure out how to skip empty dirs
+                         (map make-header $) ;Using previous map, I make a string from the "number" (eg 100644) name null char.
+                          ;Then I get the bytes and concat with the address (which is already in bytes). Then I turn it to hex-string because you can't make it a reg string
+                         (apply str $) ;Here I apply string to join entries together. Idk why it works but it does.
+                         (hashing/from-hex-string $)) ;Back to bytes fo sho fo sho
           tree-contents (byte-array (concat (.getBytes (str "tree " (count entries-byte) "\000")) entries-byte)) ;this applies the "header" of "tree (count contents) etc"
           tree-addr (hashing/sha-bytes tree-contents) ;final address
           address (hashing/address-conv dir db (hashing/to-hex-string tree-addr))]

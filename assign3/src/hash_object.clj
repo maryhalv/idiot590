@@ -1,8 +1,7 @@
 (ns hash-object
   (:require [clojure.java.io :as io])
   (:require hashing)
-  (:import (java.io File))
-  )
+  (:import (java.io File)))
 
 (defn hash-error []
   (println "idiot hash-object: compute address and maybe create blob from file

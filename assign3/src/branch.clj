@@ -1,8 +1,7 @@
 (ns branch
   (:require [clojure.java.io :as io])
   (:require [clojure.string :as str])
-  (:import (java.io File))
-  )
+  (:import (java.io File)))
 
 (defn branch-er []
   (println "idiot branch: list or delete branches
@@ -11,7 +10,6 @@ Usage: idiot branch [-d <branch>]
 
 Arguments:
    -d <branch>   delete branch <branch>"))
-
 
 (defn branch [{:keys [arg dir db]}]
   (cond
@@ -25,8 +23,7 @@ Arguments:
               (and (= "-d" switch) (not (.exists (io/file branch-path)))) (println (format "Error: branch '%s' not found." branch))
               (.startsWith (slurp (str dir File/separator db File/separator "HEAD")) "ref:")
               (let [head-contents (slurp (str dir File/separator db File/separator "HEAD"))
-                    head-branch (first (str/split (second (str/split head-contents #"heads/")) #"\n"))
-                    ]
+                    head-branch (first (str/split (second (str/split head-contents #"heads/")) #"\n"))]
                 (cond
                   (and (= switch "-d") (= branch head-branch)) (println (format "Error: cannot delete checked-out branch '%s'." branch))
                   (= switch "-d") (do
@@ -44,5 +41,4 @@ Arguments:
                                         (.delete (io/file branch-path))
                                         (println (format "Deleted branch %s." branch)))
                       :else (let [refs (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]
-                              (print (apply str (map (fn [ref] (str "  " ref "\n")) refs))))
-                      :else (println "should not be here2"))))))
+                              (print (apply str (map (fn [ref] (str "  " ref "\n")) refs)))))))))

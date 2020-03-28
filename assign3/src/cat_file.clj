@@ -3,20 +3,16 @@
   (:require [clojure.string :as str])
   (:require hashing)
   (:require commit-tree)
-  (:import  (java.io File))
-  )
+  (:import  (java.io File)))
 
 (defn cat-error []
-  (println "idiot cat-file: print information about an object
-
-Usage: idiot cat-file {-p|-t} <address>
-
-Arguments:
-   -h          print this message
-   -p          pretty-print contents based on object type
-   -t          print the type of the given object
-   <address>   the SHA1-based address of the object"))
-
+  (println "idiot cat-file: print information about an object\n")
+  (println "Usage: idiot cat-file {-p|-t} <address>\n")
+  (println "Arguments:")
+  (println "   -h          print this message")
+  (println "   -p          pretty-print contents based on object type")
+  (println "   -t          print the type of the given object")
+  (println "   <address>   the SHA1-based address of the object"))
 
 (defn read-arg-cf [{:keys [arg db dir]}]
 
