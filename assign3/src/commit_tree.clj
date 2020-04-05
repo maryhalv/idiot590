@@ -94,12 +94,30 @@
 (defn commit-tree [{:keys [arg dir db com]}]
   (let [[tree-addr m-switch message & parent-raw] arg
         parent (vec (partition 2 parent-raw))
+
+        address-err-check (reduce
+                            (fn [errors parent]
+                              (cond
+                                (> 4 (count (second parent))) (conj errors (format "Error: too few characters specified for address '%s'" (second parent)))
+                                :else (let [addr-handler (hashing/get-address {:addr (second parent) :db db :dir dir})]
+                                        (cond
+                                          (contains? addr-handler :error) (conj errors (:error addr-handler))
+                                          :else (identity errors))))) [] parents)
+        fixed-addresses (reduce
+                          (fn [new-addrs parent]
+                            (cond
+                              (> 4 (count (second parent))) (identity new-addrs)
+                              :else (let [addr-handler (hashing/get-address {:addr (second parent) :db db :dir dir})]
+                                      (cond
+                                        (contains? addr-handler :error) (identity new-addrs)
+                                        :else (conj new-addrs (:addr addr-handler)))))) [] parents)
+
         vec-not-obj (reduce
                      (fn [bads parent]
-                       (if (not (.exists (io/file (hashing/address-conv dir db (second parent))))) (conj bads (second parent)) (identity bads))) [] parent)
+                       (if (not (.exists (io/file (hashing/address-conv dir db parent)))) (conj bads parent) (identity bads))) [] fixed-addresses)
         vec-yes-obj (reduce
                      (fn [goods parent]
-                       (if (.exists (io/file (hashing/address-conv dir db (second parent)))) (conj goods (second parent)) (identity goods))) [] parent)
+                       (if (.exists (io/file (hashing/address-conv dir db parent))) (conj goods parent) (identity goods))) [] fixed-addresses)
         vec-non-commits (reduce
                          (fn [non-coms objs]
                            (if (not= "commit" (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db objs))))) #" ")))
@@ -112,22 +130,48 @@
                                                        (commit/commit-error))
       (not (.exists (io/file (str dir File/separator db)))) (println "Error: could not find database. (Did you run `idiot init`?)")
       (= nil tree-addr) (println "Error: you must specify a tree address.")
-      (not (.exists (io/file (hashing/address-conv dir db tree-addr)))) (println "Error: no tree object exists at that address.")
-      (not= "tree" (subs (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db tree-addr))))) 0 4)) (println "Error: an object exists at that address, but it isn't a tree.")
-      (not= m-switch "-m") (println "Error: you must specify a message.")
-      (and (= m-switch "-m") (= nil message)) (println "Error: you must specify a message with the -m switch.")
-      (not= [] vec-not-obj) (println (format "Error: no commit object exists at address %s." (first vec-not-obj)))
-      (not= [] vec-non-commits) (println (format "Error: an object exists at address %s, but it isn't a commit." (first vec-non-commits)))
-      (not p-sufficient) (println "Error: you must specify a commit object with the -p switch.")
-      :else (let [commit-object (commit-object tree-addr message parent)
-                  commit-addr (hashing/to-hex-string (hashing/sha-bytes (.getBytes commit-object)))
-                  commit-path (hashing/address-conv dir db commit-addr)]
-              (if (= com "commit-tree")
-                (println commit-addr)
-                (do
-                  (println "Commit created.\n")
-                  (commit/updateHead {:addr commit-addr :dir dir :db db})))
-              (io/make-parents commit-path)
-              (io/copy (hashing/zip-str commit-object) (io/file commit-path))))))
+      (= 40 (count tree-addr)) (cond
+                                 (not (.exists (io/file (hashing/address-conv dir db tree-addr)))) (println "Error: no tree object exists at that address.")
+                                 (not (empty? address-err-check)) (println (first address-err-check))
+                                 (not= "tree" (subs (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db tree-addr))))) 0 4)) (println "Error: an object exists at that address, but it isn't a tree.")
+                                 (not= m-switch "-m") (println "Error: you must specify a message.")
+                                 (and (= m-switch "-m") (= nil message)) (println "Error: you must specify a message with the -m switch.")
+                                 (not= [] vec-not-obj) (println (format "Error: no commit object exists at address %s." (first vec-not-obj)))
+                                 (not= [] vec-non-commits) (println (format "Error: an object exists at address %s, but it isn't a commit." (first vec-non-commits)))
+                                 (not p-sufficient) (println "Error: you must specify a commit object with the -p switch.")
+                                 :else (let [commit-object (commit-object tree-addr message parent)
+                                             commit-addr (hashing/to-hex-string (hashing/sha-bytes (.getBytes commit-object)))
+                                             commit-path (hashing/address-conv dir db commit-addr)]
+                                         (if (= com "commit-tree")
+                                           (println commit-addr)
+                                           (do
+                                             (println "Commit created.\n")
+                                             (commit/updateHead {:addr commit-addr :dir dir :db db})))
+                                         (io/make-parents commit-path)
+                                         (io/copy (hashing/zip-str commit-object) (io/file commit-path))))
+      (> 4 (count tree-addr)) (println (format "Error: too few characters specified for address'%s'" tree-addr))
+      :else (let [address-handler (hashing/get-address {:addr tree-addr :db db :dir dir})]
+              (cond
+                (contains? address-handler :error) (println (:error address-handler))
+                :else (let [tree-addr (:addr address-handler)]
+                        (cond
+                          (not (.exists (io/file (hashing/address-conv dir db tree-addr)))) (println "Error: no tree object exists at that address.")
+                          (not (empty? address-err-check)) (println (first address-err-check))
+                          (not= "tree" (subs (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db tree-addr))))) 0 4)) (println "Error: an object exists at that address, but it isn't a tree.")
+                          (not= m-switch "-m") (println "Error: you must specify a message.")
+                          (and (= m-switch "-m") (= nil message)) (println "Error: you must specify a message with the -m switch.")
+                          (not= [] vec-not-obj) (println (format "Error: no commit object exists at address %s." (first vec-not-obj)))
+                          (not= [] vec-non-commits) (println (format "Error: an object exists at address %s, but it isn't a commit." (first vec-non-commits)))
+                          (not p-sufficient) (println "Error: you must specify a commit object with the -p switch.")
+                          :else (let [commit-object (commit-object tree-addr message parent)
+                                      commit-addr (hashing/to-hex-string (hashing/sha-bytes (.getBytes commit-object)))
+                                      commit-path (hashing/address-conv dir db commit-addr)]
+                                  (if (= com "commit-tree")
+                                    (println commit-addr)
+                                    (do
+                                      (println "Commit created.\n")
+                                      (commit/updateHead {:addr commit-addr :dir dir :db db})))
+                                  (io/make-parents commit-path)
+                                  (io/copy (hashing/zip-str commit-object) (io/file commit-path))))))))))
 
 
