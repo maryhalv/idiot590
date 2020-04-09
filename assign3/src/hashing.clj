@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io])
   (:import java.security.MessageDigest
            (java.io ByteArrayOutputStream ByteArrayInputStream File)
-           (java.util.zip DeflaterOutputStream InflaterInputStream)))
+           (java.util.zip DeflaterOutputStream InflaterInputStream))
+  (:require hashing))
 
 (declare bytes->str, split-at-byte, to-hex-string, hex-digits->byte, unzip)
 
