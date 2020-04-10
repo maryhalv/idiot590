@@ -47,8 +47,14 @@
            pAddy (nth parent-header 1)]
          (if (= header "parent")
            (do
-             (def tally (- tally 1))
-             (get-commit dir db pAddy))))))
+             ;;if tally isn't set to -1, then it has been assigned a non-negative integer as count
+             (if (not (= tally -1))
+               (def tally (- tally 1)))
+             ;;tally is equal to 0, this means all the printing has happened, no need to recurr
+             ;;if it is equal to -1, then it will still occur without changing
+             ;;the tally value
+             (if (not (= tally 0))
+               (get-commit dir db pAddy)))))))
 
 (defn refHead [dir db]
   (let [file (str dir File/separator db File/separator "HEAD")
@@ -84,11 +90,16 @@
 (defn rev-list [{:keys [arg dir db]}]
   (cond
     (or (= (first arg) "-h") (= (first arg) "--help")) (revHelp)
+    (not (.exists (io/file (str dir File/separator db)))) (println "Error: could not find database. (Did you run `idiot init`?)")
     (and (= (first arg) "-n") (nil? (nthnext arg 1))) (println "Error: you must specify a numeric count with '-n'.")
+    (and (= (first arg) "-n") (not (number? (read-string (second arg))))) (println "Error: the argument for '-n' must be a non-negative integer.")
     (and (= (first arg) "-n") (< (Integer/parseInt (second arg)) 0)) (println "Error: the argument for '-n' must be a non-negative integer.")
+    (and (= (first arg ) "-n") (nil? (nthnext arg 2))) (do (def tally (Integer/parseInt (second arg))) (refHead dir db))
     (and (= (first arg) "-n") (refCheck arg dir db true)) (list-commits-count arg dir db)
-    (and (= (first arg ) "-n") (not (refCheck arg dir db true))) (println "Error: could not find ref named <ref>.")
-    (and (not= (first arg ) "-n") (not (refCheck arg dir db false))) (println "Error: could not find ref named <ref>.")
-    (and (not (= (first arg ) "-n")) (refCheck arg dir db false)) (list-commits arg dir db)))
+    (and (= (first arg ) "-n") (not (refCheck arg dir db true))) (println (format "Error: could not find ref named %s." (nth arg 2)))
+    (and (not (= (first arg ) "-n")) (nil? (nthnext arg 0))) (refHead dir db)
+    (and (not (= (first arg ) "-n")) (not (refCheck arg dir db false))) (println (format "Error: could not find ref named %s." (first arg)))
+    (and (not (= (first arg ) "-n")) (refCheck arg dir db false)) (list-commits arg dir db))
+  )
 
 

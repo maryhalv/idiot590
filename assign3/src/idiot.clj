@@ -12,7 +12,8 @@
   (:require branch)
   (:require revList)
   (:require commitTree2)
-  (:require writeTree2))
+  (:require writeTree2)
+  (:require log))
 
 (defn top-level-error []
   (println "idiot: the other stupid content tracker\n")
@@ -30,6 +31,7 @@
   (println "   help")
   (println "   init")
   (println "   log --oneline [-n <count>] [<ref>]")
+  (println "   rev-list [-n <count>] [<ref>]")
   (println "   rev-parse <ref>")
   (println "   switch [-c] <branch>")
   (println "   write-wtree"))
@@ -49,6 +51,7 @@
   (println "   help")
   (println "   init")
   (println "   log --oneline [-n <count>] [<ref>]")
+  (println "   rev-list [-n <count>] [<ref>]")
   (println "   rev-parse <ref>")
   (println "   switch [-c] <branch>")
   (println "   write-wtree"))
@@ -70,6 +73,7 @@
       (= arg-s "switch") (switch/switch-er)
       (= arg-s "branch") (branch/branch-er)
       (= arg-s "rev-list") (revList/revHelp)
+      (= arg-s "log") (log/logHelp)
       (or (= arg-s "-h") (= arg-s "--help")) (help-error)
       :else (println "Error: invalid command"))))
 
@@ -86,6 +90,7 @@
     (= com "switch") (switch/switch {:arg arg :dir dir :db db})
     (= com "branch") (branch/branch {:arg arg :dir dir :db db})
     (= com "rev-list") (revList/rev-list {:arg arg :dir dir :db db})
+    (= com "log") (log/log {:arg arg :dir dir :db db})
     (or (= com nil) (= com "-h") (= com "--help")) (top-level-error)
     :else (println "Error: invalid command")))
 
