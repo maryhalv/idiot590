@@ -88,7 +88,7 @@
     (and (= (first arg) "-n") (< (Integer/parseInt (second arg)) 0)) (println "Error: the argument for '-n' must be a non-negative integer.")
     (and (= (first arg) "-n") (refCheck arg dir db true)) (list-commits-count arg dir db)
     (and (= (first arg ) "-n") (not (refCheck arg dir db true))) (println "Error: could not find ref named <ref>.")
-    (and (not= (first arg ) "-n") (not (refCheck arg dir db true))) (println "Error: could not find ref named <ref>.")
+    (and (not= (first arg ) "-n") (not (refCheck arg dir db false))) (println "Error: could not find ref named <ref>.")
     (and (not (= (first arg ) "-n")) (refCheck arg dir db false)) (list-commits arg dir db)))
 
 
