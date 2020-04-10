@@ -94,7 +94,7 @@
 (defn commit-tree [{:keys [arg dir db com]}]
   (let [[tree-addr m-switch message & parent-raw] arg
         parent (vec (partition 2 parent-raw))
-
+        ;;checks for errors within the parent addresses given. If there are errors, they will be put in the address-err-check vector from first to last
         address-err-check (reduce
                             (fn [errors parent]
                               (cond
@@ -102,7 +102,7 @@
                                 :else (let [addr-handler (hashing/get-address {:addr (second parent) :db db :dir dir})]
                                         (cond
                                           (contains? addr-handler :error) (conj errors (:error addr-handler))
-                                          :else (identity errors))))) [] parents)
+                                          :else (identity errors))))) [] parent)
         fixed-addresses (reduce
                           (fn [new-addrs parent]
                             (cond
@@ -110,18 +110,18 @@
                               :else (let [addr-handler (hashing/get-address {:addr (second parent) :db db :dir dir})]
                                       (cond
                                         (contains? addr-handler :error) (identity new-addrs)
-                                        :else (conj new-addrs (:addr addr-handler)))))) [] parents)
+                                        :else (conj new-addrs (:addr addr-handler)))))) [] parent)
 
         vec-not-obj (reduce
-                     (fn [bads parent]
-                       (if (not (.exists (io/file (hashing/address-conv dir db parent)))) (conj bads parent) (identity bads))) [] fixed-addresses)
+                      (fn [bads parent]
+                        (if (not (.exists (io/file (hashing/address-conv dir db parent)))) (conj bads parent) (identity bads))) [] fixed-addresses)
         vec-yes-obj (reduce
-                     (fn [goods parent]
-                       (if (.exists (io/file (hashing/address-conv dir db parent))) (conj goods parent) (identity goods))) [] fixed-addresses)
+                      (fn [goods parent]
+                        (if (.exists (io/file (hashing/address-conv dir db parent))) (conj goods parent) (identity goods))) [] fixed-addresses)
         vec-non-commits (reduce
-                         (fn [non-coms objs]
-                           (if (not= "commit" (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db objs))))) #" ")))
-                             (conj non-coms objs) (identity non-coms))) [] vec-yes-obj)
+                          (fn [non-coms objs]
+                            (if (not= "commit" (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db objs))))) #" ")))
+                              (conj non-coms objs) (identity non-coms))) [] vec-yes-obj)
         p-sufficient (not= "-p" (last parent-raw))]
 
     (cond
@@ -149,7 +149,7 @@
                                              (commit/updateHead {:addr commit-addr :dir dir :db db})))
                                          (io/make-parents commit-path)
                                          (io/copy (hashing/zip-str commit-object) (io/file commit-path))))
-      (> 4 (count tree-addr)) (println (format "Error: too few characters specified for address'%s'" tree-addr))
+      (> 4 (count tree-addr)) (println (format "Error: too few characters specified for address '%s'" tree-addr))
       :else (let [address-handler (hashing/get-address {:addr tree-addr :db db :dir dir})]
               (cond
                 (contains? address-handler :error) (println (:error address-handler))

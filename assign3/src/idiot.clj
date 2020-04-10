@@ -11,8 +11,6 @@
   (:require commit)
   (:require branch)
   (:require revList)
-  (:require commitTree2)
-  (:require writeTree2)
   (:require log))
 
 (defn top-level-error []
