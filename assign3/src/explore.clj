@@ -27,7 +27,7 @@ Arguments:
       (not (.exists (io/file (str dir File/separator db)))) (println "Error: could not find database. (Did you run `idiot init`?)")
       (and (= "-p" switch) (= nil port)) (println "Error: you must specify a numeric port with '-p'.")
       (and (= "-p" switch) (not= Integer (type (parse port)))) (println "Error: the argument for '-p' must be a non-negative integer.")
-      (and (= "-p" switch) (< (parse port) 0))(println "Error: the argument for '-p' must be a non-negative integer.")
+      (and (= "-p" switch) (< (parse port) 0)) (println "Error: the argument for '-p' must be a non-negative integer.")
       :else (do
               (cond
                 (= nil port) (println "Starting server on port 3000.")
