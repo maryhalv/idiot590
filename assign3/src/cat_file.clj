@@ -14,7 +14,6 @@
   (println "   -t          print the type of the given object")
   (println "   <address>   the SHA1-based address of the object"))
 
-
 (defn read-arg-cf [{:keys [arg db dir]}]
 
   (let [arg-s (first arg)
@@ -26,15 +25,15 @@
       (and (not= arg-s "-t") (not= arg-s "-p")) (println "Error: the -p or -t switch is required")
       (= address nil) (println "Error: you must specify an address")
       (= 40 address-size) (cond
-                                 (not (.exists (io/file (hashing/address-conv dir db address)))) (println "Error: that address doesn't exist")
-                                 :else (let [object (hashing/bytes->str (second (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db address)))))
-                                             object-type (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db address))))) #" "))]
-                                         (cond
-                                           (= arg-s "-t") (println object-type)
-                                           (= "blob" object-type) (print object)
-                                           (= "tree" object-type) (commit-tree/format-entries (commit-tree/get-entries dir db address))
-                                           (= "commit" object-type) (print object)
-                                           :else (prn "shouldn't be here"))))
+                            (not (.exists (io/file (hashing/address-conv dir db address)))) (println "Error: that address doesn't exist")
+                            :else (let [object (hashing/bytes->str (second (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db address)))))
+                                        object-type (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db address))))) #" "))]
+                                    (cond
+                                      (= arg-s "-t") (println object-type)
+                                      (= "blob" object-type) (print object)
+                                      (= "tree" object-type) (commit-tree/format-entries (commit-tree/get-entries dir db address))
+                                      (= "commit" object-type) (print object)
+                                      :else (prn "shouldn't be here"))))
 
       (> 4 address-size) (println (format "Error: too few characters specified for address '%s'" address))
       :else (let [address-handler (hashing/get-address {:addr address :db db :dir dir})]
