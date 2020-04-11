@@ -1,6 +1,7 @@
 (ns revList
   (:require [clojure.java.io :as io])
   (:require [clojure.string :as str])
+  (:require hashing)
   (:import (java.io File)))
 
 (defn revHelp []
@@ -14,22 +15,20 @@
 
 (defn refCheck [arg dir db is-n]
   (if is-n
-    (do
-      (if (not (nil? (nthnext arg 2)))
-        (let [ref (nth arg 2)]
-          (cond
-            (= ref "@") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
-            (= ref "HEAD") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
-            :else
-            (.exists (io/file (str (str dir File/separator db File/separator "refs" File/separator "heads" File/separator ref))))))))
-    (do
-      (if (not (nil? (first arg)))
-        (let [ref (first arg)]
-          (cond
-            (= ref "@") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
-            (= ref "HEAD") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
-            :else
-            (.exists (io/file (str (str dir File/separator db File/separator "refs" File/separator "heads" File/separator ref))))))))))
+    (if (not (nil? (nthnext arg 2)))
+      (let [ref (nth arg 2)]
+        (cond
+          (= ref "@") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
+          (= ref "HEAD") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
+          :else
+          (.exists (io/file (str (str dir File/separator db File/separator "refs" File/separator "heads" File/separator ref)))))))
+    (if (not (nil? (first arg)))
+      (let [ref (first arg)]
+        (cond
+          (= ref "@") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
+          (= ref "HEAD") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
+          :else
+          (.exists (io/file (str (str dir File/separator db File/separator "refs" File/separator "heads" File/separator ref)))))))))
 
 (defn get-commit [dir db addy]
   (let [address (nth (str/split addy #"\n") 0)
@@ -37,9 +36,8 @@
         commitObject (hashing/bytes->str (second (hashing/split-at-byte 0 (hashing/unzip filepath))))]
     (if (> tally 0)
       (println address)
-      (do
-        (if (= tally -1)
-          (println address))))
+      (if (= tally -1)
+        (println address)))
     (let [commits (str/split commitObject #"\n")
           parent (nth commits 1)
           parent-header (str/split parent #"\s+")
@@ -68,54 +66,49 @@
     (let [message line5
           trimMessage (nth (str/split (nth message 0) #"\n") 0)]
       (println (str/join (take 7 addy)) trimMessage))
-    (do
-      (let [message line4
-            trimMessage (nth (str/split message #"\n") 0)]
-        ;;if the line starts with author or committer, need to keep traversing
-        (if (or (= (nth (str/split message #"\s+") 0) "author") (= (nth (str/split message #"\s+") 0) "committer"))
-          (do
-            (let [message (findMessage commits (nth line5 0) (nth commits 6) 6)
-                  trimMessage (nth (str/split message #"\n") 0)]
-              (println (str/join (take 7 addy)) trimMessage)))
-          (println (str/join (take 7 addy)) trimMessage))))))
+    (let [message line4
+          trimMessage (nth (str/split message #"\n") 0)]
+      ;;if the line starts with author or committer, need to keep traversing
+      (if (or (= (nth (str/split message #"\s+") 0) "author") (= (nth (str/split message #"\s+") 0) "committer"))
+        (let [message (findMessage commits (nth line5 0) (nth commits 6) 6)
+              trimMessage (nth (str/split message #"\n") 0)]
+          (println (str/join (take 7 addy)) trimMessage))
+        (println (str/join (take 7 addy)) trimMessage)))))
 
 (defn logCommit [dir db addy]
   (let [address (nth (str/split addy #"\n") 0)
         filepath (hashing/address-conv dir db address)
-        commitObject (hashing/bytes->str (second (hashing/split-at-byte 0 (hashing/unzip filepath))))]
-    (let [commits (str/split commitObject #"\n")
-          line4 (nth commits 4)
-          line5 (nthnext commits 5)
-          parent (nth commits 1)
-          parent-header (str/split parent #"\s+")
-          header (nth parent-header 0)
-          pAddy (nth parent-header 1)]
-      (if (> tally 0)
-        (formatLine commits line4 line5 addy)
-        (do
-          (if (= tally -1)
-            (formatLine commits line4 line5 addy))))
-      (if (= header "parent")
-        (do
-          (if (not (= tally -1))
-            (def tally (- tally 1)))
-          (if (not (= tally 0))
-            (logCommit dir db pAddy)))))))
+        commitObject (hashing/bytes->str (second (hashing/split-at-byte 0 (hashing/unzip filepath))))
+        commits (str/split commitObject #"\n")
+        line4 (nth commits 4)
+        line5 (nthnext commits 5)
+        parent (nth commits 1)
+        parent-header (str/split parent #"\s+")
+        header (nth parent-header 0)
+        pAddy (nth parent-header 1)]
+    (if (> tally 0)
+      (formatLine commits line4 line5 addy)
+      (if (= tally -1)
+        (formatLine commits line4 line5 addy)))
+    (if (= header "parent")
+      (do
+        (if (not (= tally -1))
+          (def tally (- tally 1)))
+        (if (not (= tally 0))
+          (logCommit dir db pAddy))))))
 
 (defn refHead [dir db log]
   (let [file (str dir File/separator db File/separator "HEAD")
         headContent (slurp (io/file file))]
     (cond
       (= (apply str (take 4 headContent)) "ref:")
-      (do
-        (let [addy (slurp (str dir File/separator db File/separator (apply str (butlast (apply str (subs headContent 5))))))]
-          (if log
-            (logCommit dir db addy)
-            (get-commit dir db addy))))
-      :else (do
-              (if log
-                (logCommit dir db headContent)
-                (get-commit dir db headContent))))))
+      (let [addy (slurp (str dir File/separator db File/separator (apply str (butlast (apply str (subs headContent 5))))))]
+        (if log
+          (logCommit dir db addy)
+          (get-commit dir db addy)))
+      :else (if log
+              (logCommit dir db headContent)
+              (get-commit dir db headContent)))))
 
 (defn refOther [dir db ref log]
   (let [file (str dir File/separator db File/separator "refs" File/separator "heads" File/separator ref)
@@ -148,11 +141,11 @@
     (and (= (first arg) "-n") (nil? (nthnext arg 1))) (println "Error: you must specify a numeric count with '-n'.")
     (and (= (first arg) "-n") (not (number? (read-string (second arg))))) (println "Error: the argument for '-n' must be a non-negative integer.")
     (and (= (first arg) "-n") (< (Integer/parseInt (second arg)) 0)) (println "Error: the argument for '-n' must be a non-negative integer.")
-    (and (= (first arg ) "-n") (nil? (nthnext arg 2))) (do (def tally (Integer/parseInt (second arg))) (refHead dir db false))
+    (and (= (first arg) "-n") (nil? (nthnext arg 2))) (do (def tally (Integer/parseInt (second arg))) (refHead dir db false))
     (and (= (first arg) "-n") (refCheck arg dir db true)) (list-commits-count arg dir db false)
-    (and (= (first arg ) "-n") (not (refCheck arg dir db true))) (println (format "Error: could not find ref named %s." (nth arg 2)))
-    (and (not (= (first arg ) "-n")) (nil? (nthnext arg 0))) (refHead dir db false)
-    (and (not (= (first arg ) "-n")) (not (refCheck arg dir db false))) (println (format "Error: could not find ref named %s." (first arg)))
-    (and (not (= (first arg ) "-n")) (refCheck arg dir db false)) (list-commits arg dir db false)))
+    (and (= (first arg) "-n") (not (refCheck arg dir db true))) (println (format "Error: could not find ref named %s." (nth arg 2)))
+    (and (not (= (first arg) "-n")) (nil? (nthnext arg 0))) (refHead dir db false)
+    (and (not (= (first arg) "-n")) (not (refCheck arg dir db false))) (println (format "Error: could not find ref named %s." (first arg)))
+    (and (not (= (first arg) "-n")) (refCheck arg dir db false)) (list-commits arg dir db false)))
 
 

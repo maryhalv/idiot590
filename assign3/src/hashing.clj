@@ -110,7 +110,6 @@
     (>= 95 (count arg)) (print (subs arg 8))
     :else (print "too large, correct this")))
 
-
 (defn get-address [{:keys [addr db dir]}]
   (let [first2 (apply str (take 2 addr))
         addr-count (count addr)
