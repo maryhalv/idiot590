@@ -96,39 +96,38 @@
         parent (vec (partition 2 parent-raw))
         ;;checks for errors within the parent addresses given. If there are errors, they will be put in the address-err-check vector from first to last
         address-err-check (reduce
-                            (fn [errors parent]
-                              (cond
-                                (> 4 (count (second parent))) (conj errors (format "Error: too few characters specified for address '%s'" (second parent)))
-                                :else (let [addr-handler (hashing/get-address {:addr (second parent) :db db :dir dir})]
-                                        (cond
-                                          (contains? addr-handler :error) (conj errors (:error addr-handler))
-                                          :else (identity errors))))) [] parent)
+                           (fn [errors parent]
+                             (cond
+                               (> 4 (count (second parent))) (conj errors (format "Error: too few characters specified for address '%s'" (second parent)))
+                               :else (let [addr-handler (hashing/get-address {:addr (second parent) :db db :dir dir})]
+                                       (cond
+                                         (contains? addr-handler :error) (conj errors (:error addr-handler))
+                                         :else (identity errors))))) [] parent)
         fixed-addresses (reduce
-                          (fn [new-addrs parent]
-                            (cond
-                              (> 4 (count (second parent))) (identity new-addrs)
-                              :else (let [addr-handler (hashing/get-address {:addr (second parent) :db db :dir dir})]
-                                      (cond
-                                        (contains? addr-handler :error) (identity new-addrs)
-                                        :else (conj new-addrs (:addr addr-handler)))))) [] parent)
+                         (fn [new-addrs parent]
+                           (cond
+                             (> 4 (count (second parent))) (identity new-addrs)
+                             :else (let [addr-handler (hashing/get-address {:addr (second parent) :db db :dir dir})]
+                                     (cond
+                                       (contains? addr-handler :error) (identity new-addrs)
+                                       :else (conj new-addrs (:addr addr-handler)))))) [] parent)
 
         vec-not-obj (reduce
-                      (fn [bads parent]
-                        (if (not (.exists (io/file (hashing/address-conv dir db parent)))) (conj bads parent) (identity bads))) [] fixed-addresses)
+                     (fn [bads parent]
+                       (if (not (.exists (io/file (hashing/address-conv dir db parent)))) (conj bads parent) (identity bads))) [] fixed-addresses)
         vec-yes-obj (reduce
-                      (fn [goods parent]
-                        (if (.exists (io/file (hashing/address-conv dir db parent))) (conj goods parent) (identity goods))) [] fixed-addresses)
+                     (fn [goods parent]
+                       (if (.exists (io/file (hashing/address-conv dir db parent))) (conj goods parent) (identity goods))) [] fixed-addresses)
         vec-non-commits (reduce
-                          (fn [non-coms objs]
-                            (if (not= "commit" (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db objs))))) #" ")))
-                              (conj non-coms objs) (identity non-coms))) [] vec-yes-obj)
+                         (fn [non-coms objs]
+                           (if (not= "commit" (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db objs))))) #" ")))
+                             (conj non-coms objs) (identity non-coms))) [] vec-yes-obj)
         p-sufficient (not= "-p" (last parent-raw))
         ;;reformatting to the original parent form so that the rest of the methods work
         parent (vec (partition 2
                                (reduce
-                                 (fn [parents-tot parent]
-                                   (do (conj parents-tot "-p" parent))) [] fixed-addresses)))
-        ]
+                                (fn [parents-tot parent]
+                                  (conj parents-tot "-p" parent)) [] fixed-addresses)))]
 
     (cond
       (or (= tree-addr "-h") (= tree-addr "--help")) (if (= com "commit-tree")
@@ -138,7 +137,7 @@
       (= nil tree-addr) (println "Error: you must specify a tree address.")
       (= 40 (count tree-addr)) (cond
                                  (not (.exists (io/file (hashing/address-conv dir db tree-addr)))) (println "Error: no tree object exists at that address.")
-                                 (not (empty? address-err-check)) (println (first address-err-check))
+                                 (seq address-err-check) (println (first address-err-check))
                                  (not= "tree" (subs (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db tree-addr))))) 0 4)) (println "Error: an object exists at that address, but it isn't a tree.")
                                  (not= m-switch "-m") (println "Error: you must specify a message.")
                                  (and (= m-switch "-m") (= nil message)) (println "Error: you must specify a message with the -m switch.")
@@ -162,7 +161,7 @@
                 :else (let [tree-addr (:addr address-handler)]
                         (cond
                           (not (.exists (io/file (hashing/address-conv dir db tree-addr)))) (println "Error: no tree object exists at that address.")
-                          (not (empty? address-err-check)) (println (first address-err-check))
+                          (seq address-err-check) (println (first address-err-check))
                           (not= "tree" (subs (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db tree-addr))))) 0 4)) (println "Error: an object exists at that address, but it isn't a tree.")
                           (not= m-switch "-m") (println "Error: you must specify a message.")
                           (and (= m-switch "-m") (= nil message)) (println "Error: you must specify a message with the -m switch.")

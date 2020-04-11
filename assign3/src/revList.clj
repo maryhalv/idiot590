@@ -21,14 +21,14 @@
           (= ref "@") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
           (= ref "HEAD") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
           :else
-          (.exists (io/file (str (str dir File/separator db File/separator "refs" File/separator "heads" File/separator ref)))))))
+          (.exists (io/file (str (str dir File/separator db File/separator "refs" File/separator "heads" File/separator ref)))))) nil)
     (if (not (nil? (first arg)))
       (let [ref (first arg)]
         (cond
           (= ref "@") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
           (= ref "HEAD") (.exists (io/file (str dir File/separator db File/separator "HEAD")))
           :else
-          (.exists (io/file (str (str dir File/separator db File/separator "refs" File/separator "heads" File/separator ref)))))))))
+          (.exists (io/file (str (str dir File/separator db File/separator "refs" File/separator "heads" File/separator ref)))))) nil)))
 
 (defn get-commit [dir db addy]
   (let [address (nth (str/split addy #"\n") 0)
@@ -37,7 +37,7 @@
     (if (> tally 0)
       (println address)
       (if (= tally -1)
-        (println address)))
+        (println address) nil))
     (let [commits (str/split commitObject #"\n")
           parent (nth commits 1)
           parent-header (str/split parent #"\s+")
@@ -47,12 +47,12 @@
         (do
           ;;if tally isn't set to -1, then it has been assigned a non-negative integer as count
           (if (not (= tally -1))
-            (def tally (- tally 1)))
+            (def tally (- tally 1)) nil)
           ;;tally is equal to 0, this means all the printing has happened, no need to recurr
           ;;if it is equal to -1, then it will still occur without changing
           ;;the tally value
           (if (not (= tally 0))
-            (get-commit dir db pAddy)))))))
+            (get-commit dir db pAddy) nil)) nil))))
 
 (defn findMessage [commits line1 line2 i]
   ;;if the count of line 1 is 0, then that means the next line contains the commit message
@@ -89,13 +89,13 @@
     (if (> tally 0)
       (formatLine commits line4 line5 addy)
       (if (= tally -1)
-        (formatLine commits line4 line5 addy)))
+        (formatLine commits line4 line5 addy) nil))
     (if (= header "parent")
       (do
         (if (not (= tally -1))
-          (def tally (- tally 1)))
+          (def tally (- tally 1)) nil)
         (if (not (= tally 0))
-          (logCommit dir db pAddy))))))
+          (logCommit dir db pAddy) nil)) nil)))
 
 (defn refHead [dir db log]
   (let [file (str dir File/separator db File/separator "HEAD")
@@ -132,7 +132,7 @@
     (let [ref (nth arg 0)]
       (if (or (= ref "@") (= ref "HEAD"))
         (refHead dir db log)
-        (refOther dir db ref log)))))
+        (refOther dir db ref log))) nil))
 
 (defn rev-list [{:keys [arg dir db]}]
   (cond
