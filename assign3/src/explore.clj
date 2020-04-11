@@ -13,12 +13,20 @@ Usage: idiot explore [-p <port>]
 Arguments:
    -p <port>   listen on the given port (default: 3000)"))
 
+(defn body [{:keys [dir db]}]
+  (html5 [:head [:title "ResponderHeader"]]
+         [:body [:ul (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]]))
 
-(html5 [:head [:title "ResponseHeader"]] [:body [:ul "here"]])
-(defn handler [branches]
+(defn macro-handler [{:keys [dir db]}]
   {:status  200                                             ; meaning "OK"
    :headers {"content-type" "text/html"}                    ; instead of e.g. "text/html"
-   :body    (html5 [:head [:title "ResponderHeader"]] [:body [:ul branches]])})  ; the payload
+   :body    (html5 [:head [:title "ResponderHeader"]]
+                   [:body [:ul (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]])})
+
+(defn handler []
+  {:status  200                                             ; meaning "OK"
+   :headers {"content-type" "text/html"}                    ; instead of e.g. "text/html"
+   :body    "hello, world" })  ; the payload
 
 (defn start-server [port]
   (run-jetty handler {:port port}))
@@ -31,7 +39,8 @@ Arguments:
       (and (= "-p" switch) (= nil port)) (println "Error: you must specify a numeric port with '-p'.")
       (and (= "-p" switch) (not (>= (try (Integer/parseInt port) (catch NumberFormatException e -1)) 0))) (println "Error: the argument for '-p' must be a non-negative integer.")
       :else (let [port (Integer/parseInt (if (= switch nil) "3000" port))
-                  branches (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))
-                  handled (handler branches)]
+                  body (html5 [:head [:title "ResponderHeader"]]
+                              [:body [:ul (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]])
+                  handler (macro-handler {:dir dir :db db})]
               (println (format "Starting server on port %d." port))
-              (run-jetty handled {:port port})))))
+              (run-jetty handler {:port port})))))
