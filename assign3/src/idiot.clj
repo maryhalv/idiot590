@@ -11,7 +11,8 @@
   (:require commit)
   (:require branch)
   (:require revList)
-  (:require log))
+  (:require log)
+  (:require explore))
 
 (defn top-level-error []
   (println "idiot: the other stupid content tracker\n")
@@ -89,6 +90,7 @@
     (= com "branch") (branch/branch {:arg arg :dir dir :db db})
     (= com "rev-list") (revList/rev-list {:arg arg :dir dir :db db})
     (= com "log") (log/log {:arg arg :dir dir :db db})
+    (= com "explore") (explore/explore {:arg arg :dir dir :db db})
     (or (= com nil) (= com "-h") (= com "--help")) (top-level-error)
     :else (println "Error: invalid command")))
 
