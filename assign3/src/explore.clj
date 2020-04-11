@@ -17,13 +17,12 @@ Arguments:
   (html5 [:head [:title "ResponderHeader"]]
          [:body [:ul (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]]))
 
-(defn macro-handler [{:keys [dir db]}]
-  {:status  200                                             ; meaning "OK"
-   :headers {"content-type" "text/html"}                    ; instead of e.g. "text/html"
-   :body    (html5 [:head [:title "ResponderHeader"]]
-                   [:body [:ul (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]])})
+(defn macro-handler [body]
+  (fn handler [_] {:status  200                                            ; meaning "OK"
+    :headers {"content-type" "text/html"}                   ; instead of e.g. "text/html"
+    :body    body}))
 
-(defn handler []
+(defn handler [port]
   {:status  200                                             ; meaning "OK"
    :headers {"content-type" "text/html"}                    ; instead of e.g. "text/html"
    :body    "hello, world" })  ; the payload
@@ -38,9 +37,11 @@ Arguments:
       (not (.exists (io/file (str dir File/separator db)))) (println "Error: could not find database. (Did you run `idiot init`?)")
       (and (= "-p" switch) (= nil port)) (println "Error: you must specify a numeric port with '-p'.")
       (and (= "-p" switch) (not (>= (try (Integer/parseInt port) (catch NumberFormatException e -1)) 0))) (println "Error: the argument for '-p' must be a non-negative integer.")
-      :else (let [port (Integer/parseInt (if (= switch nil) "3000" port))
-                  body (html5 [:head [:title "ResponderHeader"]]
-                              [:body [:ul (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]])
-                  handler (macro-handler {:dir dir :db db})]
-              (println (format "Starting server on port %d." port))
-              (run-jetty handler {:port port})))))
+      :else (do
+              (cond
+               (= nil port) (println "Starting server on port 3000.")
+               :else (println (format "Starting server on port %s." port)))
+              (let [body (eval (html5 [:head [:title "ResponderHeader"]]
+                                      [:body [:ul (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]]))
+                    port (try (Integer/parseInt port) (catch NumberFormatException e 3000))]
+                (run-jetty (macro-handler body) {:port port}))))))
