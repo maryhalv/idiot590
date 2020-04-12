@@ -73,6 +73,7 @@
       (= arg-s "branch") (branch/branch-er)
       (= arg-s "rev-list") (revList/revHelp)
       (= arg-s "log") (log/logHelp)
+      (= arg-s "explore") (explore/explore-er)
       (or (= arg-s "-h") (= arg-s "--help")) (help-error)
       :else (println "Error: invalid command"))))
 
