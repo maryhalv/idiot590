@@ -1,5 +1,6 @@
 (ns explore
   (:require [clojure.java.io :as io])
+  (:require [clojure.string :as str])
   (:import (java.io File))
   (:require [ring.adapter.jetty :refer [run-jetty]])
   (:require [hiccup.page :refer [html5]]))
@@ -12,10 +13,35 @@ Usage: idiot explore [-p <port>]
 Arguments:
    -p <port>   listen on the given port (default: 3000)"))
 
-(defn macro-handler [body]
-  (fn handler [_] {:status  200                             ; meaning "OK"
-                   :headers {"content-type" "text/html"}    ; instead of e.g. "text/html"
-                   :body    body}))
+;(defn macro-handler [body]
+;  (fn handler [_] {:status  200                             ; meaning "OK"
+;                   :headers {"content-type" "text/html"}    ; instead of e.g. "text/html"
+;                   :body    body}))
+
+(defn headBody [dir db]
+  (let [file (str dir File/separator db File/separator "HEAD")
+        headContent (slurp (io/file file))
+        refParse (str/split headContent #" ")
+        ref (nth (str/split (nth refParse 1) #"/") 2)
+        branches (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]
+    (eval (html5 [:head [:title "ResponderHeader"]]
+                 [:body
+                  [:div {:class "head-info"} "HEAD points to " [:a {:href (str "/branch/" ref)} ref]]
+                  [:ul {:class "branch-list"} (map #(html5 [:li [:a {:href (str "/branch/" %)} %]]) branches)]]))))
+
+(defn headEndpoint [dir db]
+  {:status 200
+   :headers {"Content-type" "text/html"}
+   :body (headBody dir db)})
+
+(defn macro-handler [dir db]
+  (fn handler [request]
+    (let [{:keys [request-method uri]} request]
+      (cond
+        (= uri "/") (headEndpoint dir db)
+        :else {:status 200
+               :headers {"Content-type" "text/html"}
+               :body (pr-str {:request-method request-method, :path uri})}))))
 
 (defn parse [int]
   (try (Integer/parseInt int) (catch NumberFormatException e (.getMessage e))))
@@ -35,4 +61,4 @@ Arguments:
               (let [body (eval (html5 [:head [:title "ResponderHeader"]]
                                       [:body [:ul (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]]))
                     port (if (= nil port) 3000 (parse port))]
-                (run-jetty (macro-handler body) {:port port}))))))
+                (run-jetty (macro-handler dir db) {:port port}))))))
