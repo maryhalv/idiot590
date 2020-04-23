@@ -3,7 +3,8 @@
   (:require [clojure.string :as str])
   (:import (java.io File))
   (:require [ring.adapter.jetty :refer [run-jetty]])
-  (:require [hiccup.page :refer [html5]]))
+  (:require [hiccup.page :refer [html5]])
+  (:require [endpoint_commit]))
 
 (defn explore-er []
   (println "idiot explore: start a web server to explore the database
@@ -18,16 +19,19 @@ Arguments:
 ;                   :headers {"content-type" "text/html"}    ; instead of e.g. "text/html"
 ;                   :body    body}))
 
+(defn returnLi [branch]
+  [:li [:a {:href (str "/branch/" (str/trim-newline branch))} (str/trim-newline branch)]])
+
 (defn headBody [dir db]
   (let [file (str dir File/separator db File/separator "HEAD")
         headContent (slurp (io/file file))
         refParse (str/split headContent #" ")
-        ref (nth (str/split (nth refParse 1) #"/") 2)
+        ref (str/trim-newline (nth (str/split (nth refParse 1) #"/") 2) )
         branches (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]
     (eval (html5 [:head [:title "ResponderHeader"]]
                  [:body
                   [:div {:class "head-info"} "HEAD points to " [:a {:href (str "/branch/" ref)} ref]]
-                  [:ul {:class "branch-list"} (map #(html5 [:li [:a {:href (str "/branch/" %)} %]]) branches)]]))))
+                  [:ul {:class "branch-list"} (map #(returnLi (str/trim-newline %)) branches)]]))))
 
 (defn headEndpoint [dir db]
   {:status 200
@@ -36,9 +40,11 @@ Arguments:
 
 (defn macro-handler [dir db]
   (fn handler [request]
-    (let [{:keys [request-method uri]} request]
+    (let [{:keys [request-method uri]} request
+          split-uri (str/split uri #"/")]
       (cond
         (= uri "/") (headEndpoint dir db)
+        (= (nth split-uri 1) "commit") (endpoint_commit/commitEndpoint dir db (nth split-uri 2))
         :else {:status 200
                :headers {"Content-type" "text/html"}
                :body (pr-str {:request-method request-method, :path uri})}))))
