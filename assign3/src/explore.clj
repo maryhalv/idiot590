@@ -6,7 +6,8 @@
   (:require [hiccup.page :refer [html5]])
   (:require [endpoint_commit])
   (:require [endpoint-branch])
-  (:require [endpoint_tree]))
+  (:require [endpoint_tree])
+  (:require [endpoint_blob]))
 
 (defn explore-er []
   (println "idiot explore: start a web server to explore the database
@@ -28,7 +29,7 @@ Arguments:
   (let [file (str dir File/separator db File/separator "HEAD")
         headContent (slurp (io/file file))
         refParse (str/split headContent #" ")
-        ref (str/trim-newline (nth (str/split (nth refParse 1) #"/") 2) )
+        ref (str/trim-newline (nth (str/split (nth refParse 1) #"/") 2))
         branches (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]
     (eval (html5 [:head [:title "ResponderHeader"]]
                  [:body
@@ -49,6 +50,7 @@ Arguments:
         (= (nth split-uri 1) "branch") (endpoint-branch/commitBranch {:branch (nth split-uri 2) :dir dir :db db})
         (= (nth split-uri 1) "commit") (endpoint_commit/commitEndpoint dir db (nth split-uri 2))
         (= (nth split-uri 1) "tree") (endpoint_tree/treeEndpoint dir db (nth split-uri 2))
+        (= (nth split-uri 1) "blob") (endpoint_blob/blobEndpoint dir db (nth split-uri 2))
         :else {:status 200
                :headers {"Content-type" "text/html"}
                :body (pr-str {:request-method request-method, :path uri})}))))
@@ -68,7 +70,5 @@ Arguments:
               (cond
                 (= nil port) (println "Starting server on port 3000.")
                 :else (println (format "Starting server on port %s." port)))
-              (let [body (eval (html5 [:head [:title "ResponderHeader"]]
-                                      [:body [:ul (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]]))
-                    port (if (= nil port) 3000 (parse port))]
+              (let [port (if (= nil port) 3000 (parse port))]
                 (run-jetty (macro-handler dir db) {:port port}))))))

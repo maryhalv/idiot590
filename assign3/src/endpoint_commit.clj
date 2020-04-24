@@ -37,7 +37,7 @@
                   [:div {:class "tree"} "tree " [:a {:href (str "/tree/" treeAddy)} treeAddy]]
                   (map #(formatCommit %) commits)]))))
 
-(defn commitFound [ object addy]
+(defn commitFound [object addy]
   {:status  200
    :headers {"Content-type" "text/html"}
    :body (commitBody object addy)})

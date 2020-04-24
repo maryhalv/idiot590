@@ -13,24 +13,24 @@
         extra (str/trim-newline (nth parts 2))
         addy (nth (str/split extra #"\t") 0)
         name (nth (str/split extra #"\t") 1)]
-     [:li [:tt (str mode " " type " ") [:a {:href (str "/" type "/" addy)} (str addy)] (str " " name)]]))
+    [:li [:tt (str mode " " type " ") [:a {:href (str "/" type "/" addy)} (str addy)] (str " " name)]]))
 
 (defn format-entries [header+entries-byte]
   (let [entries-byte (vec (rest header+entries-byte))
         entries-sep (vec (partition 2 entries-byte))
         headers (as-> entries-sep $
-                      (map first $)
-                      (map vec $)
-                      (map hashing/bytes->str $))
+                  (map first $)
+                  (map vec $)
+                  (map hashing/bytes->str $))
         modes (as-> headers $
-                    (map first (map #(str/split % #" ") $))
-                    (map #(str/replace % #"40000" "040000 tree") $)
-                    (map #(str/replace % #"100644" "100644 blob") $))
+                (map first (map #(str/split % #" ") $))
+                (map #(str/replace % #"40000" "040000 tree") $)
+                (map #(str/replace % #"100644" "100644 blob") $))
         names (map second (map #(str/split % #" ") headers))
         addresses (as-> entries-sep $
-                        (map second $)
-                        (map vec $)
-                        (map hashing/to-hex-string $))
+                    (map second $)
+                    (map vec $)
+                    (map hashing/to-hex-string $))
         entry-format "%s %s\t%s\n"
         entries-tot (map (fn [modes addresses names]
                            (format entry-format modes addresses names)) modes addresses names)]
@@ -62,8 +62,7 @@
       (let [filepath (hashing/address-conv dir db addy_coll)
             addy_full addy_coll]
         (if (.exists (io/file filepath))
-          (let  [object (hashing/bytes->str (second (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db addy_full)))))
-                 object-type (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db addy_full))))) #" "))]
+          (let  [object-type (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db addy_full))))) #" "))]
             (cond
               (= (str object-type) "commit") (commitFound addy)
               (= (str object-type) "blob") (endpoint_commit/blobFound addy)
