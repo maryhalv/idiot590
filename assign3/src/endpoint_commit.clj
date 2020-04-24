@@ -2,8 +2,7 @@
   (:require [clojure.java.io :as io])
   (:require [clojure.string :as str])
   (:require [hashing])
-  (:require [hiccup.page :refer [html5]])
-  (:import (java.io File)))
+  (:require [hiccup.page :refer [html5]]))
 
 (defn formatAuthor [line]
   (let [half_1 (nth (str/split line #"<") 0)
@@ -54,19 +53,28 @@
 (defn returnLi [addy dir db]
   (let [filepath (hashing/address-conv dir db addy)
         object-type (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip filepath)))) #" "))]
-    [:li [:a {:href (str "/" object-type "/" (str/trim-newline addy))} (str/trim-newline addy)] (str " (" object-type ")")]))
+    [:li [:a {:href (str "/" object-type "/" addy)} addy] (str " (" object-type ")")]))
 
-(defn multipleCommits [addys dir db]
+(defn multipleCommitsBody [addys dir db]
   (eval (html5 [:head [:title "ResponderHeader"]]
                [:body
                 [:p "The given address prefix is ambiguous. Please disambiguate your intent by choosing from the following options."]
-                [:ul {:class "disambiguation-list"} (map #(returnLi (str/trim-newline %) dir db) addys)]])))
+                [:ul {:class "disambiguation-list"}
+                 ;; (map #(returnLi (str/trim-newline %) dir db) addys)
+                 ]])
+        ))
+
+;;addys here should be the full address
+(defn multipleCommits [addys dir db]
+  {:status  300
+   :headers {"Content-type" "text/html"}
+   :body (multipleCommitsBody addys dir db)})
 
 (defn commitEndpoint [dir db addy]
- (let [addy_handler (hashing/get-address-endpoint {:addr addy :db db :dir dir})
-       addy_coll (:addr addy_handler)
-       is_one (:one addy_handler)]
-   ;;the address used NEEDS to be the one returned form addy_handler so that it is the full address, not addy
+  (let [addy_handler (hashing/get-address-endpoint {:addr addy :db db :dir dir})
+        addy_coll (:addr addy_handler)
+        is_one (:one addy_handler)]
+    ;;the address used NEEDS to be the one returned form addy_handler so that it is the full address, not addy
     (if is_one
       (let [filepath (hashing/address-conv dir db addy_coll)
             addy_full addy_coll]
