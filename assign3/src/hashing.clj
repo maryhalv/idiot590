@@ -127,3 +127,21 @@
                             (> 1 (count matching-addrs)) {:error "Error: that address doesn't exist"}
                             :else {:addr (str first2 (first matching-addrs))}))
       :else {:addr (str first2 last-part)})))
+
+(defn get-address-endpoint [{:keys [addr db dir]}]
+  (let [first2 (apply str (take 2 addr))
+        addr-count (count addr)
+        last-part (apply str (subs addr 2))
+        lp-count (- addr-count 2)
+        path (str dir File/separator db File/separator "objects" File/separator first2)
+        first-two-exists? (.exists (io/file path))]
+    (cond
+      first-two-exists? (let [sub-addrs (seq (.list (io/file path)))
+                              matching-addrs (reduce (fn [matching-addr addresses]
+                                                       (let [addr-cut (apply str (take lp-count addresses))]
+                                                         (if (= last-part addr-cut) (conj matching-addr addresses) (identity matching-addr)))) [] sub-addrs)]
+                          (cond
+                            (< 1 (count matching-addrs)) {:addr matching-addrs :one false}
+                            (> 1 (count matching-addrs)) {:error "Error: that address doesn't exist"}
+                            :else {:addr (str first2 (first matching-addrs)) :one true}))
+      :else {:addr (str first2 last-part) :one true})))

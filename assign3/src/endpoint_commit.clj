@@ -17,15 +17,16 @@
         email (nth (str/split (nth half_2_parts 0) #">") 0)
         timestamp (nth half_2_parts 1)
         timezone (nth half_2_parts 2)]
-    [:div {:class "author"} (str type " " name " " "&lt;" email "&gt; " timestamp)]))
+    [:div {:class (str type)} (str type " " name " " "&lt;" email "&gt; " timestamp " " (str/trim-newline timezone))]))
 
 (defn formatCommit [line]
   (let [parts (str/split line #" ")]
     (cond
-      (= (nth parts 0) "parent") ([:div "parent " [:a {:href (str "/tree/" (nth parts 1))} (nth parts 1)]])
+      (= (nth parts 0) "parent") [:div {:class "parent"} "parent " [:a {:href (str "/commit/" (str/trim-newline (nth parts 1)))} (str/trim-newline (nth parts 1))]]
       (= (nth parts 0) "author") (formatAuthor line)
       (= (nth parts 0) "committer") (formatAuthor line)
-      (= (count parts) 1) [:pre {:class "message"} line])))
+      :else (if (and (not (= line "")) (not (= (nth parts 0) "tree")))
+              [:pre {:class "message"} (str/trim-newline line)]))))
 
 (defn commitBody [object addy]
   (let [commits (str/split object #"\n")
@@ -38,7 +39,7 @@
                   (map #(formatCommit %) commits)]))))
 
 (defn commitFound [ object addy]
-  {:status 200
+  {:status  200
    :headers {"Content-type" "text/html"}
    :body (commitBody object addy)})
 
@@ -50,13 +51,31 @@
   {:status 302
    :headers {"Location" (str "/blob/" addy)}})
 
+(defn returnLi [addy dir db]
+  (let [filepath (hashing/address-conv dir db addy)
+        object-type (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip filepath)))) #" "))]
+    [:li [:a {:href (str "/" object-type "/" (str/trim-newline addy))} (str/trim-newline addy)] (str " (" object-type ")")]))
+
+(defn multipleCommits [addys dir db]
+  (eval (html5 [:head [:title "ResponderHeader"]]
+               [:body
+                [:p "The given address prefix is ambiguous. Please disambiguate your intent by choosing from the following options."]
+                [:ul {:class "disambiguation-list"} (map #(returnLi (str/trim-newline %) dir db) addys)]])))
+
 (defn commitEndpoint [dir db addy]
-  (let [filepath (hashing/address-conv dir db addy)]
-    (if (.exists (io/file filepath))
-      (let [object (hashing/bytes->str (second (hashing/split-at-byte 0 (hashing/unzip filepath))))
-            object-type (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db addy))))) #" "))]
-        (cond
-          (= "blob" object-type) (blobFound addy)
-          (= "tree" object-type) (treeFound addy)
-          :else (commitFound object addy)))
-       {:status 404})))
+ (let [addy_handler (hashing/get-address-endpoint {:addr addy :db db :dir dir})
+       addy_coll (:addr addy_handler)
+       is_one (:one addy_handler)]
+   ;;the address used NEEDS to be the one returned form addy_handler so that it is the full address, not addy
+    (if is_one
+      (let [filepath (hashing/address-conv dir db addy_coll)
+            addy_full addy_coll]
+        (if (.exists (io/file filepath))
+          (let  [object (hashing/bytes->str (second (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db addy_full)))))
+                 object-type (first (str/split (apply str (map hashing/bytes->str (hashing/split-at-byte 0 (hashing/unzip (hashing/address-conv dir db addy_full))))) #" "))]
+            (cond
+              (= (str object-type) "blob") (blobFound addy)
+              (= (str object-type) "tree") (treeFound addy)
+              :else (commitFound object addy)))
+          {:status 404}))
+      (multipleCommits addy_coll dir db))))

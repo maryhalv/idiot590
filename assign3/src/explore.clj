@@ -30,7 +30,7 @@ Arguments:
         branches (sort (seq (.list (io/file (str dir File/separator db File/separator "refs" File/separator "heads")))))]
     (eval (html5 [:head [:title "ResponderHeader"]]
                  [:body
-                  [:div {:class "head-info"} "HEAD points to " [:a {:href (str "/branch/" ref)} ref]]
+                  [:div {:class "head-info"} "HEAD points to ref " [:a {:href (str "/branch/" (str/trim-newline ref))} (str/trim-newline ref)]]
                   [:ul {:class "branch-list"} (map #(returnLi (str/trim-newline %)) branches)]]))))
 
 (defn headEndpoint [dir db]
