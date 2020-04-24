@@ -69,4 +69,4 @@
               (= (str object-type) "blob") (endpoint_commit/blobFound addy)
               :else (treeFound dir db addy addy_full)))
           {:status 404}))
-      (endpoint_commit/multipleCommits addy_coll dir db))))
+      (endpoint_commit/multipleCommits addy_coll dir db (take 2 addy)))))
