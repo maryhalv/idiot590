@@ -7,7 +7,7 @@
   (:require [log]))
 
 (defn returnLi [address commit-mes-sum]
-  (let [linkpart [:a {:href (str "/commit/" (str/trim-newline address))} (subs address 0 7)]
+  (let [linkpart [:a {:href (str "/commit/" (str/trim-newline (subs address 0 7)))} (subs address 0 7)]
         messpart (str " " (str/trim-newline commit-mes-sum))]
     [:li linkpart messpart]))
 
