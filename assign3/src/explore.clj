@@ -4,7 +4,8 @@
   (:import (java.io File))
   (:require [ring.adapter.jetty :refer [run-jetty]])
   (:require [hiccup.page :refer [html5]])
-  (:require [endpoint_commit]))
+  (:require [endpoint_commit])
+  (:require [endpoint-branch]))
 
 (defn explore-er []
   (println "idiot explore: start a web server to explore the database
@@ -44,6 +45,7 @@ Arguments:
           split-uri (str/split uri #"/")]
       (cond
         (= uri "/") (headEndpoint dir db)
+        (= (nth split-uri 1) "branch") (endpoint-branch/commitBranch {:branch (nth split-uri 2) :dir dir :db db})
         (= (nth split-uri 1) "commit") (endpoint_commit/commitEndpoint dir db (nth split-uri 2))
         :else {:status 200
                :headers {"Content-type" "text/html"}

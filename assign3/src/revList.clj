@@ -43,7 +43,7 @@
           parent (nth commits 1)
           parent-header (str/split parent #"\s+")
           header (nth parent-header 0)
-          pAddy (nth parent-header 1)]
+          pAddy (:addr (hashing/get-address {:addr (nth parent-header 1) :dir dir :db db}))]
       (if (= header "parent")
         (if (and (not (= tally 0)) (not (= tally -1)))
           (get-commit dir db pAddy (- tally 1))
@@ -80,7 +80,7 @@
         parent (nth commits 1)
         parent-header (str/split parent #"\s+")
         header (nth parent-header 0)
-        pAddy (nth parent-header 1)
+        pAddy (:addr (hashing/get-address {:addr (nth parent-header 1) :dir dir :db db}))
         count (if (= (type tally) String)
                 (Integer/parseInt tally)
                 tally)]
