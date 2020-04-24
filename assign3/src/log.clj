@@ -14,8 +14,8 @@
   ;;need to splice the --oneline command from arg for passing to list-commits methods by passing in (rest arg)
   (cond
     (or (= (first arg) "-h") (= (first arg) "--help")) (logHelp)
-    (not (.exists (io/file (str dir File/separator db)))) (println "Error: could not find database. (Did you run `idiot init`?)")
     (or (not (= (first arg) "--oneline")) (nil? (first arg)))  (println "Error: log requires the --oneline switch")
+    (not (.exists (io/file (str dir File/separator db)))) (println "Error: could not find database. (Did you run `idiot init`?)")
     (and (= (second arg) "-n") (nil? (nthnext arg 2))) (println "Error: you must specify a numeric count with '-n'.")
     (and (= (second arg) "-n") (not (number? (read-string (nth arg 2))))) (println "Error: the argument for '-n' must be a non-negative integer.")
     (and (= (second arg) "-n") (< (Integer/parseInt (nth arg 2)) 0)) (println "Error: the argument for '-n' must be a non-negative integer.")
