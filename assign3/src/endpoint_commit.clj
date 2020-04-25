@@ -24,18 +24,34 @@
       (= (nth parts 0) "parent") [:div {:class "parent"} "parent " [:a {:href (str "/commit/" (str/trim-newline (nth parts 1)))} (str/trim-newline (nth parts 1))]]
       (= (nth parts 0) "author") (formatAuthor line)
       (= (nth parts 0) "committer") (formatAuthor line)
-      :else (if (and (not (= line "")) (not (= (nth parts 0) "tree")))
-              [:pre {:class "message"} (str/trim-newline line)]))))
-
+      (and (not (= line "")) (not (= (nth parts 0) "tree"))) [:pre {:class "message"} line]
+      :else nil)))
+;;check for more than one pre tag, call function to format those pre tags into one pre
 (defn commitBody [object addy]
   (let [commits (str/split object #"\n")
         treeLine (nth commits 0)
-        treeAddy (nth (str/split treeLine #" ") 1)]
+        treeAddy (nth (str/split treeLine #" ") 1)
+        bodyFormat (map #(formatCommit %) commits)
+        pre_test (take-last 3 bodyFormat)
+        body_1 (take (- (count bodyFormat) 3) bodyFormat)
+        pre_test (apply str pre_test)
+        pre_split (nth (str/split pre_test #"]") 0)
+        pre_split_message (nth (str/split pre_split #"}") 1)
+        message_1 (subs pre_split_message 2 (- (count pre_split_message) 1))
+        pre_1 (take 5 pre_split)
+        pre_split_2 (nth (str/split pre_test #"]") 1)
+        pre_split_2_message (nth (str/split pre_split_2 #"}") 1)
+        message_2 (subs pre_split_2_message 2 (- (count pre_split_2_message) 1))
+        pre_2 (take 5 pre_split_2)
+        body_2 (if (= pre_1 pre_2)
+                 [:pre {:class "message"} (str message_1 "\n\n" message_2)]
+                 [:pre {:class "message"} (str/trim-newline message_2)])]
     (eval (html5 [:head [:title "ResponderHeader"]]
                  [:body
                   [:h1 (str "Commit " addy)]
                   [:div {:class "tree"} "tree " [:a {:href (str "/tree/" treeAddy)} treeAddy]]
-                  (map #(formatCommit %) commits)]))))
+                  body_1
+                  body_2]))))
 
 (defn commitFound [object addy]
   {:status  200
